@@ -9,9 +9,9 @@ Account::Account(string name, string email, string address, string password, str
     this->contact = contact;
     this->balance = balance;
 }
-void Account::createAccount()
+void Account::createAccount(MYSQL *conn)
 {
-    string confirmPassword;
+    string confirmPassword, insertQuery;
     bool isValid = true;
     cout << "Enter Full Name : " << endl;
     cin.ignore();
@@ -77,15 +77,17 @@ void Account::createAccount()
         cout << "Minimum Rs.500 required." << endl;
         cin >> this->balance;
     }
+    insertQuery = "INSERT INTO ACCOUNTS(NAME,EMAIL,CONTACT,ADDRESS,PASSWORD,BALANCE,STATUS) VALUES('" + this->name + "','" + this->email + "','" + this->contact + "','" + this->address + "','" + this->password + "','" + to_string(this->balance) + "','ACTIVE')";
+    query.runQuery(conn, insertQuery.c_str());
     cout << "--------------------------------------" << endl;
     cout << "Account Created Successfully." << endl;
     cout << "--------------------------------------" << endl;
-    cout << "Account Details : " << endl;
-    cout << "Name : " << this->name << endl;
-    cout << "Email : " << this->email << endl;
-    cout << "Contact : " << this->contact << endl;
-    cout << "Address : " << this->address << endl;
-    cout << "Balance : " << this->balance << endl;
+    // cout << "Account Details : " << endl;
+    // cout << "Name : " << this->name << endl;
+    // cout << "Email : " << this->email << endl;
+    // cout << "Contact : " << this->contact << endl;
+    // cout << "Address : " << this->address << endl;
+    // cout << "Balance : " << this->balance << endl;
 }
 void Account::balanceEnquiry() {}
 void Account::displayAccount() {}

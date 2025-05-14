@@ -13,7 +13,7 @@ private:
 public:
     Account();
     Account(string name, string email, string address, string password, string contact, double balance);
-    void createAccount();
+    void createAccount(MYSQL *conn);
     void balanceEnquiry();
     void displayAccount();
     void searchAccount();

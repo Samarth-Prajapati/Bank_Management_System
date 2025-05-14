@@ -31,7 +31,7 @@ int main()
         switch (choice1)
         {
         case 1:
-            account.createAccount();
+            account.createAccount(conn);
             break;
         case 2:
             break;
