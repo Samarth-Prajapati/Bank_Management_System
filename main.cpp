@@ -1,6 +1,8 @@
 #include "query.h"
+#include "account.h"
 int main()
 {
+    Account account;
     int choice1;
     cout << "--------------------------------------" << endl;
     cout << "Running..." << endl;
@@ -29,6 +31,7 @@ int main()
         switch (choice1)
         {
         case 1:
+            account.createAccount();
             break;
         case 2:
             break;
