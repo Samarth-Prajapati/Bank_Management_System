@@ -11,7 +11,9 @@ Account::Account(string name, string email, string address, string password, str
 }
 void Account::createAccount(MYSQL *conn)
 {
-    string confirmPassword, insertQuery;
+    MYSQL_RES *res, *result;
+    MYSQL_ROW row, accountRow;
+    string confirmPassword, insertQuery, fetchQuery, accountNumber;
     bool isValid = true;
     cout << "Enter Full Name : " << endl;
     cin.ignore();
@@ -82,15 +84,46 @@ void Account::createAccount(MYSQL *conn)
     cout << "--------------------------------------" << endl;
     cout << "Account Created Successfully." << endl;
     cout << "--------------------------------------" << endl;
-    // cout << "Account Details : " << endl;
-    // cout << "Name : " << this->name << endl;
-    // cout << "Email : " << this->email << endl;
-    // cout << "Contact : " << this->contact << endl;
-    // cout << "Address : " << this->address << endl;
-    // cout << "Balance : " << this->balance << endl;
+    if (mysql_query(conn, "SELECT LAST_INSERT_ID()"))
+    {
+        cerr << "Failed to retrieve Account Number : " << mysql_error(conn) << endl;
+    }
+    else
+    {
+        res = mysql_store_result(conn);
+        if (res && (row = mysql_fetch_row(res)))
+        {
+            accountNumber = row[0];
+            mysql_free_result(res);
+            fetchQuery = "SELECT ACCOUNT_NUMBER, NAME, EMAIL, CONTACT, ADDRESS, BALANCE FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + accountNumber;
+            if (mysql_query(conn, fetchQuery.c_str()))
+            {
+                cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+            }
+            else
+            {
+                result = mysql_store_result(conn);
+                if (result && (accountRow = mysql_fetch_row(result)))
+                {
+                    cout << "Account details -" << endl;
+                    cout << "Account Number  : " << accountRow[0] << endl;
+                    cout << "Name            : " << accountRow[1] << endl;
+                    cout << "Email           : " << accountRow[2] << endl;
+                    cout << "Contact         : " << accountRow[3] << endl;
+                    cout << "Address         : " << accountRow[4] << endl;
+                    cout << "Balance         : Rs." << accountRow[5] << endl;
+                }
+                mysql_free_result(result);
+            }
+        }
+    }
 }
 void Account::balanceEnquiry() {}
 void Account::displayAccount() {}
+void Account::deposit() {}
+void Account::withdraw() {}
+void Account::transfer() {}
+void Account::transactionHistory() {}
 void Account::searchAccount() {}
 void Account::showAllAccounts() {}
 void Account::closeAccount() {}

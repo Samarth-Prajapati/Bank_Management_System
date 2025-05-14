@@ -1,12 +1,15 @@
 #include "query.h"
+#include "login.h"
 #include "account.h"
 int main()
 {
+    MYSQL *conn;
     Account account;
+    Login login;
     int choice1;
     cout << "--------------------------------------" << endl;
     cout << "Running..." << endl;
-    MYSQL *conn = mysql_init(NULL);
+    conn = mysql_init(NULL);
     if (!conn)
     {
         cerr << "mysql_init() failed." << endl;
@@ -34,6 +37,7 @@ int main()
             account.createAccount(conn);
             break;
         case 2:
+            login.login();
             break;
         case 3:
             cout << "Thank You for using our services." << endl;

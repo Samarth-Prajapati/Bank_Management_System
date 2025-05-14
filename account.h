@@ -16,9 +16,12 @@ public:
     void createAccount(MYSQL *conn);
     void balanceEnquiry();
     void displayAccount();
+    void deposit();
+    void withdraw();
+    void transfer();
+    void transactionHistory();
     void searchAccount();
     void showAllAccounts();
     void closeAccount();
-    friend class Bank;
 };
 #endif
