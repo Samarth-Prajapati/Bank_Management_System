@@ -6,9 +6,8 @@ int main()
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
     Account account;
-    string username, password, username1, password1, fetchQuery;
+    string username, password, username1, password1;
     int choice1, choice2, choice3;
-    bool isValidE = false;
     cout << "--------------------------------------" << endl;
     cout << "Running..." << endl;
     conn = mysql_init(NULL);
@@ -82,41 +81,6 @@ int main()
             cout << "Enter Password : ";
             cin >> password1;
             cout << "--------------------------------------" << endl;
-            for (char c : username1)
-            {
-                if (c == '@')
-                {
-                    isValidE = true;
-                    break;
-                }
-            }
-            if (isValidE)
-            {
-                fetchQuery = "SELECT ACCOUNT_NUMBER FROM ACCOUNTS WHERE EMAIL = '" + username1 + "'";
-                if (mysql_query(conn, fetchQuery.c_str()))
-                {
-                    cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
-                    break;
-                }
-                else
-                {
-                    result = mysql_store_result(conn);
-                    if (result && (accountRow = mysql_fetch_row(result)))
-                    {
-                        username1 = accountRow[0];
-                        mysql_free_result(result);
-                    }
-                    else
-                    {
-                        cout << "Username / Password Incorrect , Login Failed." << endl;
-                        if (result)
-                        {
-                            mysql_free_result(result);
-                        }
-                        break;
-                    }
-                }
-            }
             if (account.userLogin(conn, username1, password1) == true)
             {
                 do

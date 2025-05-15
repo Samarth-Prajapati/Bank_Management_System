@@ -122,9 +122,9 @@ bool Account::userLogin(MYSQL *conn, string username1, string password1)
 {
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
-    string fetchQuery1, fetchQuery2;
-    fetchQuery1 = "SELECT * FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + username1 + " AND PASSWORD = '" + password1 + "'";
-    if (mysql_query(conn, fetchQuery1.c_str()))
+    string fetchQuery;
+    fetchQuery = "SELECT * FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "') AND PASSWORD = '" + password1 + "'";
+    if (mysql_query(conn, fetchQuery.c_str()))
     {
         cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
         cout << "--------------------------------------" << endl;
@@ -154,7 +154,7 @@ void Account::displayAccount(MYSQL *conn, string username1)
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
     string fetchQuery;
-    fetchQuery = "SELECT ACCOUNT_NUMBER, NAME, EMAIL, CONTACT, ADDRESS, BALANCE FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + username1;
+    fetchQuery = "SELECT ACCOUNT_NUMBER, NAME, EMAIL, CONTACT, ADDRESS, BALANCE FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
     if (mysql_query(conn, fetchQuery.c_str()))
     {
         cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
@@ -182,7 +182,7 @@ void Account::balanceEnquiry(MYSQL *conn, string username1)
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
     string fetchQuery;
-    fetchQuery = "SELECT BALANCE FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + username1;
+    fetchQuery = "SELECT BALANCE FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
     if (mysql_query(conn, fetchQuery.c_str()))
     {
         cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
@@ -336,7 +336,7 @@ bool Account::closeAccount(MYSQL *conn, string username1)
     MYSQL_ROW accountRow;
     string fetchQuery, balance, updateQuery;
     bool closed = false;
-    fetchQuery = "SELECT BALANCE FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + username1;
+    fetchQuery = "SELECT BALANCE FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
     if (mysql_query(conn, fetchQuery.c_str()))
     {
         cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
@@ -355,7 +355,7 @@ bool Account::closeAccount(MYSQL *conn, string username1)
     }
     if (balance == "0")
     {
-        updateQuery = "UPDATE ACCOUNTS SET STATUS = 'INACTIVE' WHERE ACCOUNT_NUMBER = " + username1;
+        updateQuery = "UPDATE ACCOUNTS SET STATUS = 'INACTIVE' WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
         if (mysql_query(conn, updateQuery.c_str()))
         {
             cerr << "Failed to close account : " << mysql_error(conn) << endl;
