@@ -3,8 +3,12 @@
 int main()
 {
     MYSQL *conn;
+    MYSQL_RES *result;
+    MYSQL_ROW accountRow;
     Account account;
-    int choice1;
+    string username, password, username1, password1, fetchQuery;
+    int choice1, choice2, choice3;
+    bool isValidE = false;
     cout << "--------------------------------------" << endl;
     cout << "Running..." << endl;
     conn = mysql_init(NULL);
@@ -25,7 +29,7 @@ int main()
     do
     {
         cout << "--------------------------------------" << endl;
-        cout << "1. Create Account\n2. Login\n3. Exit" << endl;
+        cout << "1. Create Account\n2. Admin Login\n3. User Login\n4. Exit" << endl;
         cout << "--------------------------------------" << endl;
         cin >> choice1;
         cout << "--------------------------------------" << endl;
@@ -35,8 +39,135 @@ int main()
             account.createAccount(conn);
             break;
         case 2:
+            cout << "Enter Username : ";
+            cin >> username;
+            cout << "Enter Password : ";
+            cin >> password;
+            if (username == "admin" && password == "admin")
+            {
+                cout << "Admin Login Successful." << endl;
+                cout << "--------------------------------------" << endl;
+                do
+                {
+                    cout << "--Admin--\n1. Show all accounts\n2. Search Account\n3. Back" << endl;
+                    cout << "--------------------------------------" << endl;
+                    cin >> choice2;
+                    switch (choice2)
+                    {
+                    case 1:
+                        cout << "--------------------------------------" << endl;
+                        account.showAllAccounts(conn);
+                        break;
+                    case 2:
+                        cout << "--------------------------------------" << endl;
+                        account.searchAccount(conn);
+                        break;
+                    case 3:
+                        break;
+                    default:
+                        cout << "--------------------------------------" << endl;
+                        cout << "Invalid Choice , Try Again." << endl;
+                        break;
+                    }
+                } while (choice2 != 3);
+            }
+            else
+            {
+                cout << "Invalid Username or Password." << endl;
+            }
             break;
         case 3:
+            cout << "Enter Account Number / Email : ";
+            cin >> username1;
+            cout << "Enter Password : ";
+            cin >> password1;
+            cout << "--------------------------------------" << endl;
+            for (char c : username1)
+            {
+                if (c == '@')
+                {
+                    isValidE = true;
+                    break;
+                }
+            }
+            if (isValidE)
+            {
+                fetchQuery = "SELECT ACCOUNT_NUMBER FROM ACCOUNTS WHERE EMAIL = '" + username1 + "'";
+                if (mysql_query(conn, fetchQuery.c_str()))
+                {
+                    cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+                    break;
+                }
+                else
+                {
+                    result = mysql_store_result(conn);
+                    if (result && (accountRow = mysql_fetch_row(result)))
+                    {
+                        username1 = accountRow[0];
+                        mysql_free_result(result);
+                    }
+                    else
+                    {
+                        cout << "Username / Password Incorrect , Login Failed." << endl;
+                        if (result)
+                        {
+                            mysql_free_result(result);
+                        }
+                        break;
+                    }
+                }
+            }
+            if (account.userLogin(conn, username1, password1) == true)
+            {
+                do
+                {
+                    cout << "1. Show Account Details\n2. Deposit\n3. Withdraw\n4. Balance Enquiry\n5. Transfer\n6. Transaction History\n7. Close Account\n8. Back" << endl;
+                    cout << "--------------------------------------" << endl;
+                    cin >> choice3;
+                    switch (choice3)
+                    {
+                    case 1:
+                        cout << "--------------------------------------" << endl;
+                        account.displayAccount(conn, username1);
+                        break;
+                    case 2:
+                        cout << "--------------------------------------" << endl;
+                        account.deposit();
+                        break;
+                    case 3:
+                        cout << "--------------------------------------" << endl;
+                        account.withdraw();
+                        break;
+                    case 4:
+                        cout << "--------------------------------------" << endl;
+                        account.balanceEnquiry(conn, username1);
+                        break;
+                    case 5:
+                        cout << "--------------------------------------" << endl;
+                        account.transfer();
+                        break;
+                    case 6:
+                        cout << "--------------------------------------" << endl;
+                        account.transactionHistory();
+                        break;
+                    case 7:
+                        cout << "--------------------------------------" << endl;
+                        if (account.closeAccount(conn, username1) == true)
+                        {
+                            choice3 = 8;
+                        }
+                        break;
+                    case 8:
+                        break;
+                    default:
+                        cout << "--------------------------------------" << endl;
+                        cout << "Invalid Choice , Try Again." << endl;
+                        break;
+                    }
+                } while (choice3 != 8);
+            }
+            break;
+        case 4:
             cout << "Thank You for using our services." << endl;
             cout << "--------------------------------------" << endl;
             return 0;

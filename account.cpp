@@ -118,12 +118,259 @@ void Account::createAccount(MYSQL *conn)
         }
     }
 }
-void Account::balanceEnquiry() {}
-void Account::displayAccount() {}
+bool Account::userLogin(MYSQL *conn, string username1, string password1)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW accountRow;
+    string fetchQuery1, fetchQuery2;
+    fetchQuery1 = "SELECT * FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + username1 + " AND PASSWORD = '" + password1 + "'";
+    if (mysql_query(conn, fetchQuery1.c_str()))
+    {
+        cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+        cout << "--------------------------------------" << endl;
+        return false;
+    }
+    result = mysql_store_result(conn);
+    if (result && mysql_num_rows(result) > 0)
+    {
+        mysql_free_result(result);
+        cout << "Account Found , Login Successful. " << endl;
+        cout << "--------------------------------------" << endl;
+        return true;
+    }
+    else
+    {
+        cout << "Username / Password Incorrect , Login Failed. " << endl;
+        cout << "--------------------------------------" << endl;
+        if (result)
+        {
+            mysql_free_result(result);
+        }
+        return false;
+    }
+}
+void Account::displayAccount(MYSQL *conn, string username1)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW accountRow;
+    string fetchQuery;
+    fetchQuery = "SELECT ACCOUNT_NUMBER, NAME, EMAIL, CONTACT, ADDRESS, BALANCE FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + username1;
+    if (mysql_query(conn, fetchQuery.c_str()))
+    {
+        cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+    }
+    else
+    {
+        result = mysql_store_result(conn);
+        if (result && (accountRow = mysql_fetch_row(result)))
+        {
+            cout << "Account Number  : " << accountRow[0] << endl;
+            cout << "Name            : " << accountRow[1] << endl;
+            cout << "Email           : " << accountRow[2] << endl;
+            cout << "Contact         : " << accountRow[3] << endl;
+            cout << "Address         : " << accountRow[4] << endl;
+            cout << "Balance         : Rs." << accountRow[5] << endl;
+            cout << "--------------------------------------" << endl;
+        }
+        mysql_free_result(result);
+    }
+}
 void Account::deposit() {}
 void Account::withdraw() {}
+void Account::balanceEnquiry(MYSQL *conn, string username1)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW accountRow;
+    string fetchQuery;
+    fetchQuery = "SELECT BALANCE FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + username1;
+    if (mysql_query(conn, fetchQuery.c_str()))
+    {
+        cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+    }
+    else
+    {
+        result = mysql_store_result(conn);
+        if (result && (accountRow = mysql_fetch_row(result)))
+        {
+            cout << "Current Balance : Rs." << accountRow[0] << endl;
+            cout << "--------------------------------------" << endl;
+        }
+        mysql_free_result(result);
+    }
+}
 void Account::transfer() {}
 void Account::transactionHistory() {}
-void Account::searchAccount() {}
-void Account::showAllAccounts() {}
-void Account::closeAccount() {}
+void Account::searchAccount(MYSQL *conn)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW accountRow, row;
+    int choice1, num_fields, rowCount;
+    string accountNumber, name, fetchQuery;
+    do
+    {
+        cout << "Search Account Using\n1. Account Number\n2. Name\n3. Back" << endl;
+        cout << "--------------------------------------" << endl;
+        cin >> choice1;
+        switch (choice1)
+        {
+        case 1:
+            cout << "--------------------------------------" << endl;
+            cout << "Enter Account Number : ";
+            cin >> accountNumber;
+            cout << "--------------------------------------" << endl;
+            fetchQuery = "SELECT ACCOUNT_NUMBER, NAME, EMAIL, CONTACT, ADDRESS, BALANCE,STATUS FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + accountNumber;
+            if (mysql_query(conn, fetchQuery.c_str()))
+            {
+                cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+            }
+            else
+            {
+                result = mysql_store_result(conn);
+                if (result && (accountRow = mysql_fetch_row(result)))
+                {
+                    cout << "Account Found -" << endl;
+                    cout << "Account Number  : " << accountRow[0] << endl;
+                    cout << "Name            : " << accountRow[1] << endl;
+                    cout << "Email           : " << accountRow[2] << endl;
+                    cout << "Contact         : " << accountRow[3] << endl;
+                    cout << "Address         : " << accountRow[4] << endl;
+                    cout << "Balance         : Rs." << accountRow[5] << endl;
+                    cout << "Status          : " << accountRow[6] << endl;
+                }
+                else
+                {
+                    cout << "Account not found." << endl;
+                }
+                mysql_free_result(result);
+            }
+            cout << "--------------------------------------" << endl;
+            break;
+        case 2:
+            cout << "--------------------------------------" << endl;
+            cout << "Enter Name : ";
+            cin.ignore();
+            getline(cin, name);
+            fetchQuery = "SELECT ACCOUNT_NUMBER, NAME, EMAIL, CONTACT, ADDRESS, BALANCE,STATUS FROM ACCOUNTS WHERE NAME LIKE '%" + name + "%'";
+            if (mysql_query(conn, fetchQuery.c_str()))
+            {
+                cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+            }
+            else
+            {
+                result = mysql_store_result(conn);
+                if (result && mysql_num_rows(result) > 0)
+                {
+                    num_fields = mysql_num_fields(result);
+                    rowCount = 1;
+                    while ((row = mysql_fetch_row(result)))
+                    {
+                        cout << "--------------------------------------" << endl;
+                        cout << "Search Results - " << rowCount << endl;
+                        rowCount += 1;
+                        cout << "Account Number  : " << row[0] << endl;
+                        cout << "Name            : " << row[1] << endl;
+                        cout << "Email           : " << row[2] << endl;
+                        cout << "Contact         : " << row[3] << endl;
+                        cout << "Address         : " << row[4] << endl;
+                        cout << "Balance         : Rs." << row[5] << endl;
+                        cout << "Status          : " << row[6] << endl;
+                    }
+                }
+                else
+                {
+                    cout << "No accounts found with name matching : " << name << endl;
+                }
+                mysql_free_result(result);
+                cout << "--------------------------------------" << endl;
+            }
+            break;
+        case 3:
+            break;
+        default:
+            cout << "--------------------------------------" << endl;
+            cout << "Invalid Choice , Try Again." << endl;
+            break;
+        }
+    } while (choice1 != 3);
+    cout << "--------------------------------------" << endl;
+}
+void Account::showAllAccounts(MYSQL *conn)
+{
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    int num_fields, rowCount;
+    string queryStr;
+    string accountDetails[7] = {"ACCOUNT_NUMBER", "NAME", "EMAIL", "CONTACT", "ADDRESS", "BALANCE", "STATUS"};
+    queryStr = "SELECT ACCOUNT_NUMBER, NAME, EMAIL, CONTACT, ADDRESS, BALANCE,STATUS FROM ACCOUNTS";
+    if (mysql_query(conn, queryStr.c_str()))
+    {
+        cerr << "Query Failed : " << mysql_error(conn) << endl;
+        return;
+    }
+    res = mysql_store_result(conn);
+    if (!res)
+    {
+        cerr << "Result Fetch Failed : " << mysql_error(conn) << endl;
+        return;
+    }
+    num_fields = mysql_num_fields(res);
+    cout << "Account Details -" << endl;
+    rowCount = 1;
+    while ((row = mysql_fetch_row(res)))
+    {
+        cout << "--------------------------------------" << endl;
+        cout << "Account " << rowCount << " : " << endl;
+        rowCount += 1;
+        for (int i = 0; i < num_fields; i++)
+        {
+            cout << accountDetails[i] << " : " << row[i] << endl;
+        }
+        cout << endl;
+    }
+    mysql_free_result(res);
+    cout << "--------------------------------------" << endl;
+}
+bool Account::closeAccount(MYSQL *conn, string username1)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW accountRow;
+    string fetchQuery, balance, updateQuery;
+    bool closed = false;
+    fetchQuery = "SELECT BALANCE FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + username1;
+    if (mysql_query(conn, fetchQuery.c_str()))
+    {
+        cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+        return false;
+    }
+    else
+    {
+        result = mysql_store_result(conn);
+        if (result && (accountRow = mysql_fetch_row(result)))
+        {
+            balance = accountRow[0];
+            cout << "Balance : Rs." << accountRow[0] << endl;
+            cout << "--------------------------------------" << endl;
+        }
+        mysql_free_result(result);
+    }
+    if (balance == "0")
+    {
+        updateQuery = "UPDATE ACCOUNTS SET STATUS = 'INACTIVE' WHERE ACCOUNT_NUMBER = " + username1;
+        if (mysql_query(conn, updateQuery.c_str()))
+        {
+            cerr << "Failed to close account : " << mysql_error(conn) << endl;
+            return false;
+        }
+        else
+        {
+            cout << "Account closed successfully." << endl;
+            return true;
+        }
+    }
+    else
+    {
+        cout << "Account cannot be closed. Please withdraw the balance first." << endl;
+        cout << "--------------------------------------" << endl;
+        return false;
+    }
+}
