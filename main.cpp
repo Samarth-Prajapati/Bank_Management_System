@@ -3,10 +3,10 @@
 int main()
 {
     MYSQL *conn;
-    MYSQL_RES *result;
-    MYSQL_ROW accountRow;
+    MYSQL_RES *result, *result1;
+    MYSQL_ROW accountRow, accountRow1;
     Account account;
-    string username, password, username1, password1;
+    string username, password, username1, password1, fetchQuery1, status;
     int choice1, choice2, choice3;
     cout << "--------------------------------------" << endl;
     cout << "Running..." << endl;
@@ -81,6 +81,25 @@ int main()
             cout << "Enter Password : ";
             cin >> password1;
             cout << "--------------------------------------" << endl;
+            fetchQuery1 = "SELECT STATUS FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
+            if (mysql_query(conn, fetchQuery1.c_str()))
+            {
+                cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+            }
+            else
+            {
+                result1 = mysql_store_result(conn);
+                if (result1 && (accountRow1 = mysql_fetch_row(result1)))
+                {
+                    status = accountRow1[0];
+                }
+                mysql_free_result(result1);
+            }
+            if (status == "INACTIVE")
+            {
+                cout << "Account is closed. Please contact the bank." << endl;
+                break;
+            }
             if (account.userLogin(conn, username1, password1) == true)
             {
                 do
