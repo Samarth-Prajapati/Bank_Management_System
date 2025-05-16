@@ -209,7 +209,6 @@ void Account::deposit(MYSQL *conn, string username1, string password2, double am
         else
         {
             cout << "Deposit Successful." << endl;
-            balanceEnquiry(conn, username1);
         }
     }
     else
@@ -218,7 +217,7 @@ void Account::deposit(MYSQL *conn, string username1, string password2, double am
         cout << "--------------------------------------" << endl;
     }
 }
-void Account::withdraw(MYSQL *conn, string username1, string password2, double amount)
+bool Account::withdraw(MYSQL *conn, string username1, string password2, double amount)
 {
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
@@ -229,6 +228,7 @@ void Account::withdraw(MYSQL *conn, string username1, string password2, double a
     {
         cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
         cout << "--------------------------------------" << endl;
+        return false;
     }
     else
     {
@@ -249,14 +249,14 @@ void Account::withdraw(MYSQL *conn, string username1, string password2, double a
             cout << "--------------------------------------" << endl;
             cout << "Insufficient Balance." << endl;
             cout << "--------------------------------------" << endl;
-            return;
+            return false;
         }
         else if (newBalance < 500)
         {
             cout << "--------------------------------------" << endl;
             cout << "Minimum Rs.500 required in account." << endl;
             cout << "--------------------------------------" << endl;
-            return;
+            return false;
         }
         else
         {
@@ -266,12 +266,14 @@ void Account::withdraw(MYSQL *conn, string username1, string password2, double a
                 cout << "--------------------------------------" << endl;
                 cerr << "Failed to deposit : " << mysql_error(conn) << endl;
                 cout << "--------------------------------------" << endl;
+                return false;
             }
             else
             {
                 cout << "--------------------------------------" << endl;
                 cout << "Withdraw Successful." << endl;
                 balanceEnquiry(conn, username1);
+                return true;
             }
         }
     }
@@ -279,6 +281,7 @@ void Account::withdraw(MYSQL *conn, string username1, string password2, double a
     {
         cout << "Invalid Password." << endl;
         cout << "--------------------------------------" << endl;
+        return false;
     }
 }
 void Account::balanceEnquiry(MYSQL *conn, string username1)
@@ -302,7 +305,37 @@ void Account::balanceEnquiry(MYSQL *conn, string username1)
         mysql_free_result(result);
     }
 }
-void Account::transfer() {}
+void Account::transfer(MYSQL *conn, string username1, string accountNumber, string password2, double amount)
+{
+    if (withdraw(conn, username1, password2, amount) == true)
+    {
+        MYSQL_RES *result;
+        MYSQL_ROW accountRow;
+        string fetchQuery, password;
+        fetchQuery = "SELECT ACCOUNT_NUMBER,PASSWORD FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + accountNumber;
+        if (mysql_query(conn, fetchQuery.c_str()))
+        {
+            cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+        }
+        else
+        {
+            result = mysql_store_result(conn);
+            if (result && (accountRow = mysql_fetch_row(result)))
+            {
+                accountNumber = accountRow[0];
+                password = accountRow[1];
+                cout << "Reciever Account Found." << endl;
+                deposit(conn, accountNumber, password, amount);
+                cout << "--------------------------------------" << endl;
+            }
+            else
+            {
+                cout << "Account not found." << endl;
+            }
+            mysql_free_result(result);
+        }
+    }
+}
 void Account::transactionHistory() {}
 void Account::searchAccount(MYSQL *conn)
 {
@@ -438,9 +471,9 @@ bool Account::closeAccount(MYSQL *conn, string username1)
 {
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
-    string fetchQuery, balance, updateQuery, accountNumber;
+    string fetchQuery, balance, updateQuery, accountNumber, choice, password, password2, updateQuery1;
     bool closed = false;
-    fetchQuery = "SELECT ACCOUNT_NUMBER,BALANCE FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
+    fetchQuery = "SELECT ACCOUNT_NUMBER,BALANCE,PASSWORD FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
     if (mysql_query(conn, fetchQuery.c_str()))
     {
         cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
@@ -454,30 +487,62 @@ bool Account::closeAccount(MYSQL *conn, string username1)
         {
             accountNumber = accountRow[0];
             balance = accountRow[1];
+            password = accountRow[2];
             cout << "Balance : Rs." << balance << endl;
             cout << "--------------------------------------" << endl;
         }
         mysql_free_result(result);
     }
-    if (balance == "0")
-    {
-        updateQuery = "UPDATE ACCOUNTS SET STATUS = 'INACTIVE' WHERE ACCOUNT_NUMBER = '" + accountNumber + "'";
-        if (mysql_query(conn, updateQuery.c_str()))
-        {
-            cerr << "Failed to close account : " << mysql_error(conn) << endl;
-            cout << "--------------------------------------" << endl;
-            return false;
-        }
-        else
-        {
-            cout << "Account closed successfully." << endl;
-            return true;
-        }
-    }
-    else
+    if (balance != "0")
     {
         cout << "Account cannot be closed. Please withdraw Rs." << balance << " first." << endl;
         cout << "--------------------------------------" << endl;
-        return false;
+        cout << "Do you want to withdraw ? (Y/N) : ";
+        cin >> choice;
+        cout << "--------------------------------------" << endl;
+        if (choice == "Y" || choice == "y")
+        {
+            cout << "Enter password : ";
+            cin >> password2;
+            cout << "--------------------------------------" << endl;
+            if (password == password2)
+            {
+                updateQuery1 = "UPDATE ACCOUNTS SET BALANCE = 0 WHERE ACCOUNT_NUMBER = '" + accountNumber + "'";
+                if (mysql_query(conn, updateQuery1.c_str()))
+                {
+                    cerr << "Failed to withdraw : " << mysql_error(conn) << endl;
+                    cout << "--------------------------------------" << endl;
+                }
+                else
+                {
+                    cout << "Withdraw Successful." << endl;
+                    updateQuery = "UPDATE ACCOUNTS SET STATUS = 'INACTIVE' WHERE ACCOUNT_NUMBER = '" + accountNumber + "'";
+                    if (mysql_query(conn, updateQuery.c_str()))
+                    {
+                        cerr << "Failed to close account : " << mysql_error(conn) << endl;
+                        cout << "--------------------------------------" << endl;
+                        return false;
+                    }
+                    else
+                    {
+                        cout << "Account closed successfully." << endl;
+                        closed = true;
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                cout << "Invalid Password." << endl;
+                cout << "--------------------------------------" << endl;
+                return false;
+            }
+        }
+        else
+        {
+            cout << "Account cannot be closed. Please withdraw Rs." << balance << " first." << endl;
+            cout << "--------------------------------------" << endl;
+            return false;
+        }
     }
 }

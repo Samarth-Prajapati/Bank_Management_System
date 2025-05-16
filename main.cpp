@@ -6,7 +6,7 @@ int main()
     MYSQL_RES *result, *result1;
     MYSQL_ROW accountRow, accountRow1;
     Account account;
-    string username, password, username1, password1, fetchQuery1, status, password2;
+    string username, password, username1, password1, fetchQuery1, status, password2, accountNumber;
     int choice1, choice2, choice3;
     double amount;
     cout << "--------------------------------------" << endl;
@@ -67,6 +67,7 @@ int main()
                     default:
                         cout << "--------------------------------------" << endl;
                         cout << "Invalid Choice , Try Again." << endl;
+                        cout << "--------------------------------------" << endl;
                         break;
                     }
                 } while (choice2 != 3);
@@ -122,6 +123,7 @@ int main()
                         cin >> password2;
                         cout << "--------------------------------------" << endl;
                         account.deposit(conn, username1, password2, amount);
+                        account.balanceEnquiry(conn, username1);
                         break;
                     case 3:
                         cout << "--------------------------------------" << endl;
@@ -137,7 +139,13 @@ int main()
                         break;
                     case 5:
                         cout << "--------------------------------------" << endl;
-                        account.transfer();
+                        cout << "Enter Reciever Account Number : ";
+                        cin >> accountNumber;
+                        cout << "Enter Amount : ";
+                        cin >> amount;
+                        cout << "Enter Password : ";
+                        cin >> password2;
+                        account.transfer(conn, username1, accountNumber, password2, amount);
                         break;
                     case 6:
                         cout << "--------------------------------------" << endl;
