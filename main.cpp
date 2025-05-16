@@ -6,8 +6,9 @@ int main()
     MYSQL_RES *result, *result1;
     MYSQL_ROW accountRow, accountRow1;
     Account account;
-    string username, password, username1, password1, fetchQuery1, status;
+    string username, password, username1, password1, fetchQuery1, status, password2;
     int choice1, choice2, choice3;
+    double amount;
     cout << "--------------------------------------" << endl;
     cout << "Running..." << endl;
     conn = mysql_init(NULL);
@@ -115,11 +116,20 @@ int main()
                         break;
                     case 2:
                         cout << "--------------------------------------" << endl;
-                        account.deposit();
+                        cout << "Enter Amount : ";
+                        cin >> amount;
+                        cout << "Enter Password : ";
+                        cin >> password2;
+                        cout << "--------------------------------------" << endl;
+                        account.deposit(conn, username1, password2, amount);
                         break;
                     case 3:
                         cout << "--------------------------------------" << endl;
-                        account.withdraw();
+                        cout << "Enter Amount : ";
+                        cin >> amount;
+                        cout << "Enter Password : ";
+                        cin >> password2;
+                        account.withdraw(conn, username1, password2, amount);
                         break;
                     case 4:
                         cout << "--------------------------------------" << endl;

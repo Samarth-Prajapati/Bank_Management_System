@@ -175,8 +175,112 @@ void Account::displayAccount(MYSQL *conn, string username1)
         mysql_free_result(result);
     }
 }
-void Account::deposit() {}
-void Account::withdraw() {}
+void Account::deposit(MYSQL *conn, string username1, string password2, double amount)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW accountRow;
+    string fetchQuery, balance, password, updateQuery, accountNumber;
+    double newBalance;
+    fetchQuery = "SELECT ACCOUNT_NUMBER,BALANCE,PASSWORD FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
+    if (mysql_query(conn, fetchQuery.c_str()))
+    {
+        cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+    }
+    else
+    {
+        result = mysql_store_result(conn);
+        if (result && (accountRow = mysql_fetch_row(result)))
+        {
+            accountNumber = accountRow[0];
+            balance = accountRow[1];
+            password = accountRow[2];
+        }
+        mysql_free_result(result);
+    }
+    if (password == password2)
+    {
+        newBalance = stod(balance) + amount;
+        updateQuery = "UPDATE ACCOUNTS SET BALANCE = " + to_string(newBalance) + " WHERE ACCOUNT_NUMBER = '" + accountNumber + "'";
+        if (mysql_query(conn, updateQuery.c_str()))
+        {
+            cerr << "Failed to deposit : " << mysql_error(conn) << endl;
+            cout << "--------------------------------------" << endl;
+        }
+        else
+        {
+            cout << "Deposit Successful." << endl;
+            balanceEnquiry(conn, username1);
+        }
+    }
+    else
+    {
+        cout << "Invalid Password." << endl;
+        cout << "--------------------------------------" << endl;
+    }
+}
+void Account::withdraw(MYSQL *conn, string username1, string password2, double amount)
+{
+    MYSQL_RES *result;
+    MYSQL_ROW accountRow;
+    string fetchQuery, balance, password, updateQuery, accountNumber;
+    double newBalance;
+    fetchQuery = "SELECT ACCOUNT_NUMBER,BALANCE,PASSWORD FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
+    if (mysql_query(conn, fetchQuery.c_str()))
+    {
+        cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+        cout << "--------------------------------------" << endl;
+    }
+    else
+    {
+        result = mysql_store_result(conn);
+        if (result && (accountRow = mysql_fetch_row(result)))
+        {
+            accountNumber = accountRow[0];
+            balance = accountRow[1];
+            password = accountRow[2];
+        }
+        mysql_free_result(result);
+    }
+    if (password == password2)
+    {
+        newBalance = stod(balance) - amount;
+        if (newBalance < 0)
+        {
+            cout << "--------------------------------------" << endl;
+            cout << "Insufficient Balance." << endl;
+            cout << "--------------------------------------" << endl;
+            return;
+        }
+        else if (newBalance < 500)
+        {
+            cout << "--------------------------------------" << endl;
+            cout << "Minimum Rs.500 required in account." << endl;
+            cout << "--------------------------------------" << endl;
+            return;
+        }
+        else
+        {
+            updateQuery = "UPDATE ACCOUNTS SET BALANCE = " + to_string(newBalance) + " WHERE ACCOUNT_NUMBER = '" + accountNumber + "'";
+            if (mysql_query(conn, updateQuery.c_str()))
+            {
+                cout << "--------------------------------------" << endl;
+                cerr << "Failed to deposit : " << mysql_error(conn) << endl;
+                cout << "--------------------------------------" << endl;
+            }
+            else
+            {
+                cout << "--------------------------------------" << endl;
+                cout << "Withdraw Successful." << endl;
+                balanceEnquiry(conn, username1);
+            }
+        }
+    }
+    else
+    {
+        cout << "Invalid Password." << endl;
+        cout << "--------------------------------------" << endl;
+    }
+}
 void Account::balanceEnquiry(MYSQL *conn, string username1)
 {
     MYSQL_RES *result;
