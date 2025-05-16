@@ -179,7 +179,7 @@ void Account::deposit(MYSQL *conn, string username1, string password2, double am
 {
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
-    string fetchQuery, balance, password, updateQuery, accountNumber;
+    string fetchQuery, balance, password, updateQuery, accountNumber, insertQuery;
     double newBalance;
     fetchQuery = "SELECT ACCOUNT_NUMBER,BALANCE,PASSWORD FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
     if (mysql_query(conn, fetchQuery.c_str()))
@@ -209,6 +209,8 @@ void Account::deposit(MYSQL *conn, string username1, string password2, double am
         else
         {
             cout << "Deposit Successful." << endl;
+            insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + accountNumber + "','DEPOSIT','" + to_string(amount) + "','" + to_string(newBalance) + "','Cash Deposit')";
+            query.runQuery(conn, insertQuery.c_str());
         }
     }
     else
@@ -221,7 +223,7 @@ bool Account::withdraw(MYSQL *conn, string username1, string password2, double a
 {
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
-    string fetchQuery, balance, password, updateQuery, accountNumber;
+    string fetchQuery, balance, password, updateQuery, accountNumber, insertQuery;
     double newBalance;
     fetchQuery = "SELECT ACCOUNT_NUMBER,BALANCE,PASSWORD FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
     if (mysql_query(conn, fetchQuery.c_str()))
@@ -273,6 +275,8 @@ bool Account::withdraw(MYSQL *conn, string username1, string password2, double a
                 cout << "--------------------------------------" << endl;
                 cout << "Withdraw Successful." << endl;
                 balanceEnquiry(conn, username1);
+                insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + accountNumber + "','WITHDRAWAL','" + to_string(amount) + "','" + to_string(newBalance) + "','Cash Withdraw')";
+                query.runQuery(conn, insertQuery.c_str());
                 return true;
             }
         }
@@ -307,12 +311,29 @@ void Account::balanceEnquiry(MYSQL *conn, string username1)
 }
 void Account::transfer(MYSQL *conn, string username1, string accountNumber, string password2, double amount)
 {
+    MYSQL_RES *result, *result1;
+    MYSQL_ROW accountRow, accountRow1;
+    string fetchQuery, password, insertQuery, balance1, fetchQuery1, balance2, insertQuery1;
+    double newBalance1, newBalance2;
     if (withdraw(conn, username1, password2, amount) == true)
     {
-        MYSQL_RES *result;
-        MYSQL_ROW accountRow;
-        string fetchQuery, password;
-        fetchQuery = "SELECT ACCOUNT_NUMBER,PASSWORD FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + accountNumber;
+        fetchQuery1 = "SELECT ACCOUNT_NUMBER,BALANCE FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
+        if (mysql_query(conn, fetchQuery1.c_str()))
+        {
+            cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+        }
+        else
+        {
+            result1 = mysql_store_result(conn);
+            if (result1 && (accountRow1 = mysql_fetch_row(result1)))
+            {
+                username1 = accountRow1[0];
+                balance2 = accountRow1[1];
+                newBalance2 = stod(balance2) - amount;
+            }
+            mysql_free_result(result1);
+        }
+        fetchQuery = "SELECT ACCOUNT_NUMBER,PASSWORD,BALANCE FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + accountNumber;
         if (mysql_query(conn, fetchQuery.c_str()))
         {
             cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
@@ -324,8 +345,14 @@ void Account::transfer(MYSQL *conn, string username1, string accountNumber, stri
             {
                 accountNumber = accountRow[0];
                 password = accountRow[1];
+                balance1 = accountRow[2];
+                newBalance1 = stod(balance1) + amount;
                 cout << "Reciever Account Found." << endl;
                 deposit(conn, accountNumber, password, amount);
+                insertQuery1 = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + username1 + "','" + accountNumber + "','TRANSFER','" + to_string(amount) + "','" + to_string(newBalance2) + "','Send Transfer')";
+                query.runQuery(conn, insertQuery1.c_str());
+                insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + username1 + "','" + accountNumber + "','TRANSFER','" + to_string(amount) + "','" + to_string(newBalance1) + "','Recieved Transfer')";
+                query.runQuery(conn, insertQuery.c_str());
                 cout << "--------------------------------------" << endl;
             }
             else
@@ -336,7 +363,48 @@ void Account::transfer(MYSQL *conn, string username1, string accountNumber, stri
         }
     }
 }
-void Account::transactionHistory() {}
+void Account::transactionHistory(MYSQL *conn, string username1)
+{
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    int num_fields, rowCount;
+    string queryStr;
+    string accountDetails[5] = {"TO_ACCOUNT", "TYPE", "AMOUNT", "UPDATED_BALANCE", "TIMESTAMP"};
+
+    queryStr = "SELECT TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, TIMESTAMP FROM TRANSACTIONS WHERE FROM_ACCOUNT = '" + username1 + "' ORDER BY TIMESTAMP DESC";
+
+    if (mysql_query(conn, queryStr.c_str()))
+    {
+        cerr << "Query Failed : " << mysql_error(conn) << endl;
+        return;
+    }
+
+    res = mysql_store_result(conn);
+    if (!res)
+    {
+        cerr << "Result Fetch Failed : " << mysql_error(conn) << endl;
+        return;
+    }
+
+    num_fields = mysql_num_fields(res);
+    rowCount = 1;
+
+    cout << "Transaction Details -" << endl;
+    while ((row = mysql_fetch_row(res)))
+    {
+        cout << "--------------------------------------" << endl;
+        cout << "Transaction " << rowCount << " : " << endl;
+        for (int i = 0; i < num_fields; i++)
+        {
+            cout << accountDetails[i] << " : " << (row[i] ? row[i] : " ") << endl;
+        }
+        rowCount++;
+        cout << endl;
+    }
+
+    mysql_free_result(res);
+    cout << "--------------------------------------" << endl;
+}
 void Account::searchAccount(MYSQL *conn)
 {
     MYSQL_RES *result;

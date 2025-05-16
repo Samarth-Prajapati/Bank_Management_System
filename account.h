@@ -20,7 +20,7 @@ public:
     bool withdraw(MYSQL *conn, string username1, string password2, double amount);
     void balanceEnquiry(MYSQL *conn, string username1);
     void transfer(MYSQL *conn, string username1, string accountNumber, string password2, double amount);
-    void transactionHistory();
+    void transactionHistory(MYSQL *conn, string username1);
     void searchAccount(MYSQL *conn);
     void showAllAccounts(MYSQL *conn);
     bool closeAccount(MYSQL *conn, string username1);

@@ -145,11 +145,31 @@ int main()
                         cin >> amount;
                         cout << "Enter Password : ";
                         cin >> password2;
+                        fetchQuery1 = "SELECT STATUS FROM ACCOUNTS WHERE ACCOUNT_NUMBER = " + accountNumber;
+                        if (mysql_query(conn, fetchQuery1.c_str()))
+                        {
+                            cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+                        }
+                        else
+                        {
+                            result1 = mysql_store_result(conn);
+                            if (result1 && (accountRow1 = mysql_fetch_row(result1)))
+                            {
+                                status = accountRow1[0];
+                            }
+                            mysql_free_result(result1);
+                        }
+                        if (status == "INACTIVE")
+                        {
+                            cout << "Account is closed. Please contact the bank." << endl;
+                            cout << "--------------------------------------" << endl;
+                            break;
+                        }
                         account.transfer(conn, username1, accountNumber, password2, amount);
                         break;
                     case 6:
                         cout << "--------------------------------------" << endl;
-                        account.transactionHistory();
+                        account.transactionHistory(conn, username1);
                         break;
                     case 7:
                         cout << "--------------------------------------" << endl;
