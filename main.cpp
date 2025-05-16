@@ -126,6 +126,7 @@ int main()
                     default:
                         cout << "--------------------------------------" << endl;
                         cout << "Invalid Choice , Try Again." << endl;
+                        cout << "--------------------------------------" << endl;
                         break;
                     }
                 } while (choice3 != 8);

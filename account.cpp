@@ -334,12 +334,13 @@ bool Account::closeAccount(MYSQL *conn, string username1)
 {
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
-    string fetchQuery, balance, updateQuery;
+    string fetchQuery, balance, updateQuery, accountNumber;
     bool closed = false;
-    fetchQuery = "SELECT BALANCE FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
+    fetchQuery = "SELECT ACCOUNT_NUMBER,BALANCE FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
     if (mysql_query(conn, fetchQuery.c_str()))
     {
         cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+        cout << "--------------------------------------" << endl;
         return false;
     }
     else
@@ -347,18 +348,20 @@ bool Account::closeAccount(MYSQL *conn, string username1)
         result = mysql_store_result(conn);
         if (result && (accountRow = mysql_fetch_row(result)))
         {
-            balance = accountRow[0];
-            cout << "Balance : Rs." << accountRow[0] << endl;
+            accountNumber = accountRow[0];
+            balance = accountRow[1];
+            cout << "Balance : Rs." << balance << endl;
             cout << "--------------------------------------" << endl;
         }
         mysql_free_result(result);
     }
     if (balance == "0")
     {
-        updateQuery = "UPDATE ACCOUNTS SET STATUS = 'INACTIVE' WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
+        updateQuery = "UPDATE ACCOUNTS SET STATUS = 'INACTIVE' WHERE ACCOUNT_NUMBER = '" + accountNumber + "'";
         if (mysql_query(conn, updateQuery.c_str()))
         {
             cerr << "Failed to close account : " << mysql_error(conn) << endl;
+            cout << "--------------------------------------" << endl;
             return false;
         }
         else
@@ -369,7 +372,7 @@ bool Account::closeAccount(MYSQL *conn, string username1)
     }
     else
     {
-        cout << "Account cannot be closed. Please withdraw the balance first." << endl;
+        cout << "Account cannot be closed. Please withdraw Rs." << balance << " first." << endl;
         cout << "--------------------------------------" << endl;
         return false;
     }
