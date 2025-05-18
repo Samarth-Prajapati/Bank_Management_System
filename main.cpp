@@ -49,7 +49,7 @@ int main()
                 cout << "--------------------------------------" << endl;
                 do
                 {
-                    cout << "--Admin--\n1. Show all accounts\n2. Search Account\n3. Back" << endl;
+                    cout << "--Admin--\n1. Show all accounts\n2. Search Account\n3. Transaction History\n4. Back" << endl;
                     cout << "--------------------------------------" << endl;
                     cin >> choice2;
                     switch (choice2)
@@ -63,6 +63,9 @@ int main()
                         account.searchAccount(conn);
                         break;
                     case 3:
+                        cout << "--------------------------------------" << endl;
+                        account.transactions(conn);
+                    case 4:
                         break;
                     default:
                         cout << "--------------------------------------" << endl;

@@ -21,6 +21,7 @@ public:
     void balanceEnquiry(MYSQL *conn, string username1);
     void transfer(MYSQL *conn, string username1, string accountNumber, string password2, double amount);
     void transactionHistory(MYSQL *conn, string username1);
+    void transactions(MYSQL *conn);
     void searchAccount(MYSQL *conn);
     void showAllAccounts(MYSQL *conn);
     bool closeAccount(MYSQL *conn, string username1);

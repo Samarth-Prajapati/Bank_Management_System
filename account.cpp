@@ -368,6 +368,41 @@ void Account::transfer(MYSQL *conn, string username1, string accountNumber, stri
         }
     }
 }
+void Account::transactions(MYSQL *conn)
+{
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    int num_fields, rowCount;
+    string queryStr;
+    string accountDetails[6] = {"FROM_ACCOUNT", "TO_ACCOUNT", "TYPE", "AMOUNT", "UPDATED_BALANCE", "TIMESTAMP"};
+    queryStr = "SELECT FROM_ACCOUNT,TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, TIMESTAMP FROM TRANSACTIONS ORDER BY TIMESTAMP DESC";
+    if (mysql_query(conn, queryStr.c_str()))
+    {
+        cerr << "Query Failed : " << mysql_error(conn) << endl;
+        return;
+    }
+    res = mysql_store_result(conn);
+    if (!res)
+    {
+        cerr << "Result Fetch Failed : " << mysql_error(conn) << endl;
+        return;
+    }
+    num_fields = mysql_num_fields(res);
+    rowCount = 1;
+    cout << "Transaction Details -" << endl;
+    while ((row = mysql_fetch_row(res)))
+    {
+        cout << "--------------------------------------" << endl;
+        cout << "Transaction " << rowCount << " : " << endl;
+        for (int i = 0; i < num_fields; i++)
+        {
+            cout << accountDetails[i] << " : " << (row[i] ? row[i] : " ") << endl;
+        }
+        rowCount++;
+        cout << endl;
+    }
+    mysql_free_result(res);
+}
 void Account::transactionHistory(MYSQL *conn, string username1)
 {
     MYSQL_RES *res, *result;
