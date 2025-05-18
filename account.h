@@ -16,8 +16,8 @@ public:
     void createAccount(MYSQL *conn);
     bool userLogin(MYSQL *conn, string username1, string password1);
     void displayAccount(MYSQL *conn, string username1);
-    void deposit(MYSQL *conn, string username1, string password2, double amount);
-    bool withdraw(MYSQL *conn, string username1, string password2, double amount);
+    void deposit(MYSQL *conn, string username1, string password2, double amount, bool noTransfer = true);
+    bool withdraw(MYSQL *conn, string username1, string password2, double amount, bool noTransfer = true);
     void balanceEnquiry(MYSQL *conn, string username1);
     void transfer(MYSQL *conn, string username1, string accountNumber, string password2, double amount);
     void transactionHistory(MYSQL *conn, string username1);

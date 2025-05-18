@@ -175,7 +175,7 @@ void Account::displayAccount(MYSQL *conn, string username1)
         mysql_free_result(result);
     }
 }
-void Account::deposit(MYSQL *conn, string username1, string password2, double amount)
+void Account::deposit(MYSQL *conn, string username1, string password2, double amount, bool noTransfer)
 {
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
@@ -209,8 +209,11 @@ void Account::deposit(MYSQL *conn, string username1, string password2, double am
         else
         {
             cout << "Deposit Successful." << endl;
-            insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + accountNumber + "','DEPOSIT','" + to_string(amount) + "','" + to_string(newBalance) + "','Cash Deposit')";
-            query.runQuery(conn, insertQuery.c_str());
+            if (noTransfer)
+            {
+                insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + accountNumber + "','DEPOSIT','" + to_string(amount) + "','" + to_string(newBalance) + "','Cash Deposit')";
+                query.runQuery(conn, insertQuery.c_str());
+            }
         }
     }
     else
@@ -219,7 +222,7 @@ void Account::deposit(MYSQL *conn, string username1, string password2, double am
         cout << "--------------------------------------" << endl;
     }
 }
-bool Account::withdraw(MYSQL *conn, string username1, string password2, double amount)
+bool Account::withdraw(MYSQL *conn, string username1, string password2, double amount, bool noTransfer)
 {
     MYSQL_RES *result;
     MYSQL_ROW accountRow;
@@ -275,8 +278,11 @@ bool Account::withdraw(MYSQL *conn, string username1, string password2, double a
                 cout << "--------------------------------------" << endl;
                 cout << "Withdraw Successful." << endl;
                 balanceEnquiry(conn, username1);
-                insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + accountNumber + "','WITHDRAWAL','" + to_string(amount) + "','" + to_string(newBalance) + "','Cash Withdraw')";
-                query.runQuery(conn, insertQuery.c_str());
+                if (noTransfer)
+                {
+                    insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + accountNumber + "','WITHDRAWAL','" + to_string(amount) + "','" + to_string(newBalance) + "','Cash Withdraw')";
+                    query.runQuery(conn, insertQuery.c_str());
+                }
                 return true;
             }
         }
@@ -313,9 +319,9 @@ void Account::transfer(MYSQL *conn, string username1, string accountNumber, stri
 {
     MYSQL_RES *result, *result1;
     MYSQL_ROW accountRow, accountRow1;
-    string fetchQuery, password, insertQuery, balance1, fetchQuery1, balance2, insertQuery1;
+    string fetchQuery, password, balance1, fetchQuery1, balance2, insertQuery1;
     double newBalance1, newBalance2;
-    if (withdraw(conn, username1, password2, amount) == true)
+    if (withdraw(conn, username1, password2, amount, false) == true)
     {
         fetchQuery1 = "SELECT ACCOUNT_NUMBER,BALANCE FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
         if (mysql_query(conn, fetchQuery1.c_str()))
@@ -348,12 +354,10 @@ void Account::transfer(MYSQL *conn, string username1, string accountNumber, stri
                 balance1 = accountRow[2];
                 newBalance1 = stod(balance1);
                 cout << "Reciever Account Found." << endl;
-                deposit(conn, accountNumber, password, amount);
+                deposit(conn, accountNumber, password, amount, false);
                 newBalance1 = newBalance1 + amount;
                 insertQuery1 = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + username1 + "','" + accountNumber + "','TRANSFER','" + to_string(amount) + "','" + to_string(newBalance2) + "','Send Transfer')";
                 query.runQuery(conn, insertQuery1.c_str());
-                // insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + username1 + "','" + accountNumber + "','TRANSFER','" + to_string(amount) + "','" + to_string(newBalance1) + "','Recieved Transfer')";
-                // query.runQuery(conn, insertQuery.c_str());
                 cout << "--------------------------------------" << endl;
             }
             else
@@ -594,6 +598,7 @@ bool Account::closeAccount(MYSQL *conn, string username1)
                 {
                     cerr << "Failed to withdraw : " << mysql_error(conn) << endl;
                     cout << "--------------------------------------" << endl;
+                    return false;
                 }
                 else
                 {
