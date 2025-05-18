@@ -329,7 +329,7 @@ void Account::transfer(MYSQL *conn, string username1, string accountNumber, stri
             {
                 username1 = accountRow1[0];
                 balance2 = accountRow1[1];
-                newBalance2 = stod(balance2) - amount;
+                newBalance2 = stod(balance2);
             }
             mysql_free_result(result1);
         }
@@ -346,13 +346,14 @@ void Account::transfer(MYSQL *conn, string username1, string accountNumber, stri
                 accountNumber = accountRow[0];
                 password = accountRow[1];
                 balance1 = accountRow[2];
-                newBalance1 = stod(balance1) + amount;
+                newBalance1 = stod(balance1);
                 cout << "Reciever Account Found." << endl;
                 deposit(conn, accountNumber, password, amount);
+                newBalance1 = newBalance1 + amount;
                 insertQuery1 = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + username1 + "','" + accountNumber + "','TRANSFER','" + to_string(amount) + "','" + to_string(newBalance2) + "','Send Transfer')";
                 query.runQuery(conn, insertQuery1.c_str());
-                insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + username1 + "','" + accountNumber + "','TRANSFER','" + to_string(amount) + "','" + to_string(newBalance1) + "','Recieved Transfer')";
-                query.runQuery(conn, insertQuery.c_str());
+                // insertQuery = "INSERT INTO TRANSACTIONS (FROM_ACCOUNT, TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, DESCRIPTION) VALUES('" + username1 + "','" + accountNumber + "','TRANSFER','" + to_string(amount) + "','" + to_string(newBalance1) + "','Recieved Transfer')";
+                // query.runQuery(conn, insertQuery.c_str());
                 cout << "--------------------------------------" << endl;
             }
             else
@@ -365,13 +366,26 @@ void Account::transfer(MYSQL *conn, string username1, string accountNumber, stri
 }
 void Account::transactionHistory(MYSQL *conn, string username1)
 {
-    MYSQL_RES *res;
-    MYSQL_ROW row;
+    MYSQL_RES *res, *result;
+    MYSQL_ROW row, accountRow;
     int num_fields, rowCount;
-    string queryStr;
-    string accountDetails[5] = {"TO_ACCOUNT", "TYPE", "AMOUNT", "UPDATED_BALANCE", "TIMESTAMP"};
-
-    queryStr = "SELECT TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, TIMESTAMP FROM TRANSACTIONS WHERE FROM_ACCOUNT = '" + username1 + "' ORDER BY TIMESTAMP DESC";
+    string queryStr, fetchQuery;
+    string accountDetails[6] = {"FROM_ACCOUNT", "TO_ACCOUNT", "TYPE", "AMOUNT", "UPDATED_BALANCE", "TIMESTAMP"};
+    fetchQuery = "SELECT ACCOUNT_NUMBER FROM ACCOUNTS WHERE (ACCOUNT_NUMBER = '" + username1 + "' OR EMAIL = '" + username1 + "')";
+    if (mysql_query(conn, fetchQuery.c_str()))
+    {
+        cerr << "Failed to fetch account details : " << mysql_error(conn) << endl;
+    }
+    else
+    {
+        result = mysql_store_result(conn);
+        if (result && (accountRow = mysql_fetch_row(result)))
+        {
+            username1 = accountRow[0];
+        }
+        mysql_free_result(result);
+    }
+    queryStr = "SELECT FROM_ACCOUNT,TO_ACCOUNT, TYPE, AMOUNT, UPDATED_BALANCE, TIMESTAMP FROM TRANSACTIONS WHERE FROM_ACCOUNT = '" + username1 + "' ORDER BY TIMESTAMP DESC";
 
     if (mysql_query(conn, queryStr.c_str()))
     {
