@@ -65,6 +65,7 @@ int main()
                     case 3:
                         cout << "--------------------------------------" << endl;
                         account.transactions(conn);
+                        cout << "--------------------------------------" << endl;
                         break;
                     case 4:
                         break;
@@ -74,7 +75,7 @@ int main()
                         cout << "--------------------------------------" << endl;
                         break;
                     }
-                } while (choice2 != 3);
+                } while (choice2 != 4);
             }
             else
             {
