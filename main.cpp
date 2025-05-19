@@ -65,6 +65,7 @@ int main()
                     case 3:
                         cout << "--------------------------------------" << endl;
                         account.transactions(conn);
+                        break;
                     case 4:
                         break;
                     default:

@@ -398,8 +398,7 @@ void Account::transactions(MYSQL *conn)
         {
             cout << accountDetails[i] << " : " << (row[i] ? row[i] : " ") << endl;
         }
-        rowCount++;
-        cout << endl;
+        rowCount += 1;
     }
     mysql_free_result(res);
 }
