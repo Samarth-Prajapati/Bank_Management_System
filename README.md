@@ -1,147 +1,144 @@
 Banking System
 Overview
-This is a C++ console-based banking system application that interacts with a MySQL database to manage bank accounts and transactions. It provides functionalities for account creation, user and admin login, deposits, withdrawals, transfers, balance inquiries, transaction history, and account management.
+This is a C++ console-based banking system application that interacts with a MySQL database to manage bank accounts and transactions. The system supports user and admin functionalities, including account creation, deposits, withdrawals, transfers, and transaction history tracking. It includes input validation to ensure data integrity and secure password handling.
 Features
+User Features
 
-User Features:
+Create Account: Register a new account with validated details (name, email, contact, address, password, and initial balance).
+Login: Authenticate using account number/email and password.
+Deposit: Add funds to the account (password required).
+Withdraw: Remove funds if sufficient balance exists (minimum Rs.500 required).
+Balance Enquiry: View current account balance.
+Transfer: Transfer funds to another account (password and recipient account number required).
+Transaction History: View all transactions for the account.
+Close Account: Deactivate the account after withdrawing all funds.
 
-Create a new account with validated inputs (name, email, contact, address, password, initial balance).
-Login using account number/email and password.
-Deposit and withdraw money (with minimum balance requirement of Rs. 500).
-Transfer funds to other accounts.
-View account details and transaction history.
-Close account (requires zero balance).
+Admin Features
 
-
-Admin Features:
-
-Login with admin credentials (username: admin, password: admin).
-View all accounts.
-Search accounts by account number or name.
-View all transactions.
-
-
+Show All Accounts: Display details of all accounts in the system.
+Search Account: Search accounts by account number or name.
+Transaction History: View all transactions across the system.
 
 Prerequisites
 
-Compiler: GCC (MinGW for Windows)
-Database: MySQL Server 8.0
-Libraries: MySQL C API (libmysql)
-Operating System: Windows (based on provided configuration)
+C++ Compiler: Microsoft Visual Studio 2019 or later (Community Edition is free).
+MySQL Server: MySQL 5.7 or later (via MySQL Installer for Windows).
+MySQL C Connector: MySQL Connector/C++ for database connectivity.
+Operating System: Windows 10 or later.
 
 Setup Instructions
-1. Install Dependencies
 
-MySQL Server:
-Download and install MySQL Server 8.0 from MySQL Official Website.
-Ensure MySQL Server is running and accessible.
+Install MySQL Server:
 
-
-MinGW:
-Install MinGW from MinGW Official Website or use a package manager.
-Ensure g++ is available in your PATH.
+Download and install MySQL Installer from MySQL's official website.
+Choose "MySQL Server" and "MySQL Connector/C++" during installation.
+Set up a root password during the configuration process (e.g., Apple@2310).
+Ensure the MySQL service is running: Open Services (Win+R, type services.msc), find "MySQL", and start it if necessary.
 
 
-MySQL C API:
-Ensure MySQL Server installation includes the C API libraries (typically located at C:/Program Files/MySQL/MySQL Server 8.0/lib).
-Include path: C:/Program Files/MySQL/MySQL Server 8.0/include.
+Install MySQL C Connector:
+
+If not installed via MySQL Installer, download the MySQL Connector/C++ from MySQL's website.
+Install it to a known location (e.g., C:\Program Files\MySQL\Connector C++ 8.0).
+Note the include and library paths for compilation (e.g., C:\Program Files\MySQL\Connector C++ 8.0\include and lib).
 
 
+Set Up the Database:
 
-2. Database Setup
-
-Create the database and tables by executing the SQL script provided in queries.sql:mysql -u root -p < queries.sql
-
-
-Update the MySQL connection details in main.cpp if necessary:mysql_real_connect(conn, "localhost", "root", "Apple@2310", "BANKING_SYSTEM", 3306, NULL, 0)
+Open MySQL Workbench or Command Line Client from the MySQL Installer.
+Log in using root and your password: mysql -u root -p.
+Run the SQL script (queries.sql) to create the database and tables:source C:\path\to\queries.sql;
 
 
-Replace "root" with your MySQL username.
-Replace "Apple@2310" with your MySQL password.
-Ensure "BANKING_SYSTEM" matches the database name.
+Replace C:\path\to\queries.sql with the actual file path (use backslashes for Windows).
+Verify that the BANKING_SYSTEM database is created with ACCOUNTS and TRANSACTIONS tables.
 
 
+Compile the Code:
 
-3. Project Structure
-
-main.cpp: Entry point with the main menu and logic for user/admin interactions.
-account.h / account.cpp: Handles account-related operations (create, login, deposit, etc.).
-validation.h / validation.cpp: Input validation using regex for name, email, contact, etc.
-query.h / query.cpp: Utility for executing MySQL queries.
-queries.sql: SQL script to set up the database and tables.
-c_cpp_properties.json: VS Code configuration for IntelliSense.
-tasks.json: VS Code task for building the project.
-
-4. Build the Project
-
-Using VS Code:
-Open the project folder in VS Code.
-Ensure tasks.json is configured as provided.
-Run the build-mysql task (Ctrl+Shift+B or Terminal > Run Build Task).
+Install Visual Studio with the "Desktop development with C++" workload.
+Open Visual Studio and create a new "Empty Project" under C++.
+Add the project files: main.cpp, account.cpp, query.cpp, validation.cpp, account.h, validation.h, query.h.
+Configure the project properties:
+Include Directories: Add the MySQL Connector include path (e.g., C:\Program Files\MySQL\Connector C++ 8.0\include).
+Library Directories: Add the MySQL Connector library path (e.g., C:\Program Files\MySQL\Connector C++ 8.0\lib64\vs14).
+Additional Dependencies: Add mysqlcppconn.lib under Linker > Input.
 
 
-Using Command Line:g++ -std=c++14 -I "C:/Program Files/MySQL/MySQL Server 8.0/include" main.cpp query.cpp validation.cpp account.cpp -L "C:/Program Files/MySQL/MySQL Server 8.0/lib" -lmysql -o main.exe
+Build the solution (F7) to generate the executable (e.g., banking_system.exe).
 
 
+Configure MySQL Credentials:
 
-5. Run the Application
+Update the MySQL connection details in main.cpp:mysql_real_connect(conn, "localhost", "root", "Apple@2310", "BANKING_SYSTEM", 3306, NULL, 0)
 
-Execute the compiled binary:./main.exe
+
+Replace "root" and "Apple@2310" with your MySQL username and password set during MySQL installation.
 
 
 
 Usage
 
-Main Menu:
+Run the Program:
 
-Create Account: Enter validated details to create a new account.
-Admin Login: Use admin/admin to access admin features.
-User Login: Enter account number/email and password.
-Exit: Close the application.
+Run the compiled executable: Double-click banking_system.exe in the project’s Debug or Release folder, or run it from Visual Studio (F5).
+The console will display a menu with options for creating an account, admin login, user login, or exiting.
 
 
-Admin Menu:
+Admin Login:
 
-View all accounts, search accounts, or view transaction history.
-
-
-User Menu:
-
-Perform account operations like deposit, withdraw, transfer, or close account.
+Use username: admin and password: admin to access admin features.
+Options include viewing all accounts, searching accounts, or viewing transaction history.
 
 
+User Operations:
 
-Validation Rules
+Create an account by entering validated details (full name, email, contact, address, password, and initial balance ≥ Rs.500).
+Log in using account number or email and password.
+Perform operations like deposit, withdrawal, transfer, or view transaction history.
 
-Full Name: Must start with a capital letter, followed by lowercase letters, and include at least one space (e.g., "John Doe").
-Email: Standard email format (e.g., "user@example.com").
-Contact: 10-digit number starting with 6-9 (e.g., "9876543210").
-Address: Alphanumeric with spaces, commas, and specific symbols.
-Password: At least 6 characters, including uppercase, lowercase, digit, and special character.
-Balance: Minimum Rs. 500 for new accounts and after withdrawals.
+
+
+File Structure
+
+account.h / account.cpp: Defines the Account class with methods for account management and transactions.
+validation.h / validation.cpp: Implements input validation for name, email, contact, address, password, and balance.
+query.h / query.cpp: Handles MySQL query execution.
+main.cpp: Main program loop with user and admin menus.
+queries.sql: SQL script to set up the database and tables.
+
+Database Schema
+
+ACCOUNTS Table:
+ACCOUNT_NUMBER: Auto-incremented primary key (starts at 8985420000).
+NAME, EMAIL, ADDRESS, PASSWORD, CONTACT, BALANCE, STATUS.
+
+
+TRANSACTIONS Table:
+TRANSACTION_ID: Auto-incremented primary key.
+FROM_ACCOUNT, TO_ACCOUNT, TYPE (DEPOSIT, WITHDRAWAL, TRANSFER), AMOUNT, TIMESTAMP, UPDATED_BALANCE, DESCRIPTION.
+
+
 
 Notes
 
-The application uses a simple admin login (admin/admin). Consider securing this in a production environment.
-Ensure MySQL server is running before executing the application.
-Account numbers start from 8985420000 as per the SQL configuration.
-Transactions are logged in the TRANSACTIONS table with details like type, amount, and timestamp.
+Security: Passwords are stored in plain text for simplicity. In a production environment, use hashing (e.g., bcrypt).
+Validation: The system enforces strict input validation (e.g., email format, minimum balance of Rs.500).
+Error Handling: MySQL errors are logged to cerr, and user-friendly messages are displayed.
+Admin Access: Hardcoded admin credentials (admin/admin) should be replaced with a secure authentication mechanism in production.
 
-Troubleshooting
+Limitations
 
-MySQL Connection Error:
-Verify MySQL server is running and credentials are correct.
-Check the include and library paths in the build command.
+No support for concurrent users (single-threaded console application).
+Plain text password storage is insecure.
+Limited error recovery for database connection failures.
 
+Future Improvements
 
-Validation Errors:
-Ensure inputs match the regex patterns defined in validation.cpp.
-
-
-Build Errors:
-Confirm MinGW and MySQL libraries are correctly installed and paths are set.
-
-
+Implement password hashing for secure storage.
+Add session management for concurrent users.
+Introduce a graphical user interface (GUI).
+Enhance admin features (e.g., account deletion, user role management).
 
 License
-This project is for educational purposes and does not include a specific license.
+This project is for educational purposes and is not licensed for commercial use.
